@@ -2,13 +2,13 @@
   "name": "vscode-deepseek-account-info",
   "displayName": "DeepSeek Account Info",
   "description": "Zobrazuje aktuální stav účtu DeepSeek a dostupnost modelů ve stavovém řádku (Status Bar).",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "icon": "small_v3.PNG",
   "publisher": "Hanyscz",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/hanys/vscode-deepseek-account-info"
+    "url": "https://github.com/hanyscz/VSCodeDeepSeekAccountInfo"
   },
   "engines": {
     "vscode": "^1.75.0"

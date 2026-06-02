@@ -1,7 +1,5 @@
 # DeepSeek Account Info
 
-![Logo](large_v3.PNG)
-
 Tento projekt je rozšíření (extension) pro Visual Studio Code, které v reálném čase monitoruje a zobrazuje aktuální stav vašeho účtu DeepSeek na stavovém řádku (Status Bar) včetně statistik spotřeby.
 
 ## Hlavní funkce
