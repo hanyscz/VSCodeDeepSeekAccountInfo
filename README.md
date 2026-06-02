@@ -21,14 +21,18 @@ A Visual Studio Code extension that monitors your DeepSeek account balance and m
 *   **⏱️ Configurable Refresh Rate:** Automatic update interval (default: 10 minutes).
 
 <p align="center">
-  <img src="popup.png" alt="DeepSeek Account Info - Tooltip Screenshot" width="200"/>
-  <br/>
-  <em>Tooltip showing account balance, consumption statistics and available models</em>
-</p>
-<p align="center">
-  <img src="detail.png" alt="DeepSeek Account Info - Tooltip Screenshot" width="600"/>
-  <br/>
-  <em>Detail showing account balance, consumption statistics and available models</em>
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <img src="https://raw.githubusercontent.com/hanyscz/VSCodeDeepSeekAccountInfo/refs/heads/main/popup.png" alt="Tooltip" width="220"/><br/>
+        <em>Tooltip overview</em>
+      </td>
+      <td align="center" width="50%">
+        <img src="https://raw.githubusercontent.com/hanyscz/VSCodeDeepSeekAccountInfo/refs/heads/main/detail.png" alt="Detail report" width="500"/><br/>
+        <em>Detail Markdown report</em>
+      </td>
+    </tr>
+  </table>
 </p>
 
 ### Getting Started
@@ -91,14 +95,18 @@ Rozšíření pro Visual Studio Code, které v reálném čase monitoruje a zobr
 *   **⏱️ Nastavitelná perioda:** Frekvence automatických aktualizací (výchozí 10 minut).
 
 <p align="center">
-  <img src="popup_cz.png" alt="DeepSeek Account Info - Náhled tooltipu" width="200"/>
-  <br/>
-  <em>Tooltip zobrazující zůstatek, statistiky spotřeby a dostupné modely</em>
-</p>
-<p align="center">
-  <img src="detail_cz.png" alt="DeepSeek Account Info - Náhled detailu" width="600"/>
-  <br/>
-  <em>Detail zobrazující zůstatek, statistiky spotřeby a dostupné modely</em>
+  <table>
+    <tr>
+      <td align="center" width="50%">
+        <img src="https://raw.githubusercontent.com/hanyscz/VSCodeDeepSeekAccountInfo/refs/heads/main/popup_cz.png" alt="Tooltip" width="220"/><br/>
+        <em>Tooltip s přehledem</em>
+      </td>
+      <td align="center" width="50%">
+        <img src="https://raw.githubusercontent.com/hanyscz/VSCodeDeepSeekAccountInfo/refs/heads/main/detail_cz.png" alt="Detailní report" width="500"/><br/>
+        <em>Detailní Markdown report</em>
+      </td>
+    </tr>
+  </table>
 </p>
 
 ### Jak začít
