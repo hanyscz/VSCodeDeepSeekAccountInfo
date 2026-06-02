@@ -1,0 +1,68 @@
+{
+  "name": "vscode-deepseek-account-info",
+  "displayName": "DeepSeek Account Info",
+  "description": "Zobrazuje aktuální stav účtu DeepSeek a dostupnost modelů ve stavovém řádku (Status Bar).",
+  "version": "0.2.0",
+  "icon": "small_v3.PNG",
+  "publisher": "Hanyscz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hanys/vscode-deepseek-account-info"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "DeepSeek Account Info",
+      "properties": {
+        "deepseek.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API klíč pro přístup k DeepSeek API.",
+          "scope": "application"
+        },
+        "deepseek.refreshInterval": {
+          "type": "integer",
+          "default": 10,
+          "minimum": 1,
+          "description": "Interval automatického obnovení stavu účtu (v minutách)."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "deepseek-account.enterApiKey",
+        "title": "DeepSeek: Zadat API klíč"
+      },
+      {
+        "command": "deepseek-account.refresh",
+        "title": "DeepSeek: Aktualizovat stav"
+      },
+      {
+        "command": "deepseek-account.showDetails",
+        "title": "DeepSeek: Zobrazit podrobnosti účtu a modelů"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.7",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^4.9.4"
+  }
+}
