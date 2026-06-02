@@ -2,7 +2,7 @@
   "name": "vscode-deepseek-account-info",
   "displayName": "DeepSeek Account Info",
   "description": "Zobrazuje aktuální stav účtu DeepSeek a dostupnost modelů ve stavovém řádku (Status Bar).",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "icon": "small_v3.PNG",
   "publisher": "Hanyscz",
   "license": "MIT",
