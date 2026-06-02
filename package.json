@@ -41,15 +41,15 @@
     "commands": [
       {
         "command": "deepseek-account.enterApiKey",
-        "title": "DeepSeek: Zadat API klíč"
+        "title": "DeepSeek: Enter API Key / Zadat API klíč"
       },
       {
         "command": "deepseek-account.refresh",
-        "title": "DeepSeek: Aktualizovat stav"
+        "title": "DeepSeek: Refresh Status / Aktualizovat stav"
       },
       {
         "command": "deepseek-account.showDetails",
-        "title": "DeepSeek: Zobrazit podrobnosti účtu a modelů"
+        "title": "DeepSeek: Show Account Details / Zobrazit podrobnosti účtu a modelů"
       }
     ]
   },

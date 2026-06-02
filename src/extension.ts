@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as https from 'https';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as loc from './localization';
 
 interface BalanceInfo {
     currency: string;
@@ -71,8 +72,8 @@ export function activate(context: vscode.ExtensionContext) {
     // Registrace příkazů
     const enterApiKeyCommand = vscode.commands.registerCommand('deepseek-account.enterApiKey', async () => {
         const apiKey = await vscode.window.showInputBox({
-            prompt: 'Zadejte váš DeepSeek API klíč',
-            placeHolder: 'sk_...',
+            prompt: loc.strApiKeyPrompt(),
+            placeHolder: loc.strApiKeyPlaceholder(),
             password: true,
             ignoreFocusOut: true
         });
@@ -80,7 +81,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (apiKey !== undefined) {
             const config = vscode.workspace.getConfiguration('deepseek');
             await config.update('apiKey', apiKey.trim(), vscode.ConfigurationTarget.Global);
-            vscode.window.showInformationMessage('DeepSeek API klíč byl úspěšně uložen.');
+            vscode.window.showInformationMessage(loc.strApiKeySaved());
             // Po uložení ihned aktualizujeme stav
             refreshData();
         }
@@ -137,18 +138,18 @@ async function refreshData() {
     const apiKey = config.get<string>('apiKey') || '';
 
     if (!apiKey) {
-        statusBarItem.text = '$(key) DeepSeek: Zadejte API klíč';
-        statusBarItem.tooltip = 'Kliknutím sem nastavíte DeepSeek API klíč';
+        statusBarItem.text = loc.strNoApiKey();
+        statusBarItem.tooltip = loc.strNoApiKeyTooltip();
         statusBarItem.command = 'deepseek-account.enterApiKey';
         statusBarItem.show();
         lastBalanceData = undefined;
         lastModelsData = undefined;
-        lastError = 'API klíč není nastaven. Použijte příkaz "DeepSeek: Zadat API klíč".';
+        lastError = loc.strNoApiKeyError();
         return;
     }
 
-    statusBarItem.text = '$(sync~spin) DeepSeek: Načítání...';
-    statusBarItem.tooltip = 'Načítání aktuálního stavu účtu z DeepSeek API...';
+    statusBarItem.text = loc.strLoading();
+    statusBarItem.tooltip = loc.strLoadingTooltip();
     statusBarItem.command = 'deepseek-account.showDetails';
     statusBarItem.show();
 
@@ -168,7 +169,7 @@ async function refreshData() {
         updateStatusBar(balance);
     } catch (err: any) {
         lastError = err?.message || String(err);
-        statusBarItem.text = '$(warning) DeepSeek: Chyba spojení';
+        statusBarItem.text = loc.strConnectionError();
         statusBarItem.tooltip = buildTooltipMarkdown();
         statusBarItem.command = 'deepseek-account.showDetails';
         statusBarItem.show();
@@ -189,7 +190,7 @@ function updateStatusBar(balance: UserBalanceResponse) {
         statusBarItem.text = `$(credit-card) ${currencySymbol}${amount}`;
         statusBarItem.tooltip = buildTooltipMarkdown();
     } else {
-        statusBarItem.text = '$(credit-card) DeepSeek: Aktivní';
+        statusBarItem.text = loc.strActive();
         statusBarItem.tooltip = buildTooltipMarkdown();
     }
 }
@@ -329,17 +330,17 @@ function buildTooltipMarkdown(): vscode.MarkdownString {
     tooltip.isTrusted = true;
 
     if (lastError) {
-        tooltip.appendMarkdown(`### ⚠️ DeepSeek API Chyba\n\n`);
+        tooltip.appendMarkdown(`${loc.strTooltipError()}\n\n`);
         tooltip.appendMarkdown(`> ${lastError}\n\n`);
-        tooltip.appendMarkdown(`[Zadat API klíč](command:deepseek-account.enterApiKey) | [Zkusit znovu](command:deepseek-account.refresh)`);
+        tooltip.appendMarkdown(`[${loc.strTooltipEnterKey()}](command:deepseek-account.enterApiKey) | [${loc.strTooltipRetry()}](command:deepseek-account.refresh)`);
         return tooltip;
     }
 
-    tooltip.appendMarkdown(`### 💰 Stav DeepSeek Účtu\n\n`);
+    tooltip.appendMarkdown(`${loc.strTooltipBalance()}\n\n`);
 
     if (lastBalanceData) {
-        const isAvail = lastBalanceData.is_available ? '✅ Aktivní' : '❌ Bez prostředků';
-        tooltip.appendMarkdown(`**Dostupnost:** ${isAvail}\n\n`);
+        const isAvail = lastBalanceData.is_available ? loc.strAvailableYes() : loc.strAvailableNo();
+        tooltip.appendMarkdown(`${loc.strTooltipAvailable()} ${isAvail}\n\n`);
 
         for (const info of lastBalanceData.balance_infos) {
             const currencySymbol = info.currency === 'CNY' ? '¥' : info.currency === 'USD' ? '$' : '';
@@ -349,7 +350,7 @@ function buildTooltipMarkdown(): vscode.MarkdownString {
 
         // Statistiky spotřeby – vždy viditelné
         tooltip.appendMarkdown(`---\n\n`);
-        tooltip.appendMarkdown(`### 📊 Spotřeba\n\n`);
+        tooltip.appendMarkdown(`${loc.strTooltipConsumption()}\n\n`);
         
         const stats = getConsumptionStats();
         const curSym = lastBalanceData.balance_infos.length > 0
@@ -357,28 +358,28 @@ function buildTooltipMarkdown(): vscode.MarkdownString {
             : '';
 
         if (stats.historyLength < 2) {
-            tooltip.appendMarkdown(`⏳ *Probíhá sběr dat... Další aktualizace přinesou první statistiky.*\n\n`);
+            tooltip.appendMarkdown(`${loc.strCollecting()}\n\n`);
         } else {
             const lines: string[] = [];
             if (stats.daily) {
                 const emoji = stats.daily.consumed >= 0 ? '📉' : '📈';
-                lines.push(`${emoji} **Denní:** ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)}`);
+                lines.push(`${emoji} ${loc.strDaily()} ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)}`);
             }
             if (stats.weekly) {
                 const emoji = stats.weekly.consumed >= 0 ? '📉' : '📈';
-                lines.push(`${emoji} **Týdenní:** ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)}`);
+                lines.push(`${emoji} ${loc.strWeekly()} ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)}`);
             }
             if (stats.monthly) {
                 const emoji = stats.monthly.consumed >= 0 ? '📉' : '📈';
-                lines.push(`${emoji} **Měsíční:** ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)}`);
+                lines.push(`${emoji} ${loc.strMonthly()} ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)}`);
             }
             if (stats.total) {
                 const emoji = stats.total.consumed >= 0 ? '📉' : '📈';
-                lines.push(`${emoji} **Celkem:** ${curSym}${Math.abs(stats.total.consumed).toFixed(4)}`);
+                lines.push(`${emoji} ${loc.strTotal()} ${curSym}${Math.abs(stats.total.consumed).toFixed(4)}`);
             }
             if (stats.avgDaily) {
                 const emoji = stats.avgDaily.consumed >= 0 ? '📊' : '📊';
-                lines.push(`${emoji} **Ø/den:** ${curSym}${Math.abs(stats.avgDaily.consumed).toFixed(4)} (${stats.avgDaily.days} dnů)`);
+                lines.push(`${emoji} ${loc.strAvgDaily()} ${curSym}${Math.abs(stats.avgDaily.consumed).toFixed(4)} (${loc.strDays(stats.avgDaily.days)})`);
             }
             tooltip.appendMarkdown(lines.join('\n\n') + '\n\n');
         }
@@ -386,7 +387,7 @@ function buildTooltipMarkdown(): vscode.MarkdownString {
 
     if (lastModelsData) {
         tooltip.appendMarkdown(`---\n\n`);
-        tooltip.appendMarkdown(`### 🤖 Dostupné Modely\n\n`);
+        tooltip.appendMarkdown(`${loc.strTooltipModels()}\n\n`);
         for (const model of lastModelsData.data) {
             tooltip.appendMarkdown(`*   \`${model.id}\`\n`);
         }
@@ -394,8 +395,8 @@ function buildTooltipMarkdown(): vscode.MarkdownString {
     }
 
     tooltip.appendMarkdown(`---\n`);
-    tooltip.appendMarkdown(`*Aktualizováno: ${new Date().toLocaleTimeString()}*\n\n`);
-    tooltip.appendMarkdown(`[Zobrazit report](command:deepseek-account.showDetails) | [Aktualizovat](command:deepseek-account.refresh)`);
+    tooltip.appendMarkdown(`${loc.strReportUpdated()} ${new Date().toLocaleTimeString()}*\n\n`);
+    tooltip.appendMarkdown(`[${loc.strShowReport()}](command:deepseek-account.showDetails) | [${loc.strRefresh()}](command:deepseek-account.refresh)`);
 
     return tooltip;
 }
@@ -431,38 +432,38 @@ function makeHttpsGetRequest<T>(url: string, apiKey: string): Promise<T> {
                         const parsed = JSON.parse(data);
                         resolve(parsed as T);
                     } catch (e) {
-                        reject(new Error(`Chyba při parsování JSON odpovědi API: ${e instanceof Error ? e.message : String(e)}`));
+                        reject(new Error(`${loc.strParseError()} ${e instanceof Error ? e.message : String(e)}`));
                     }
                 } else {
                     try {
                         const errObj = JSON.parse(data);
-                        reject(new Error(errObj.error?.message || `API server odpověděl kódem ${res.statusCode}`));
+                        reject(new Error(errObj.error?.message || loc.strHttpError(res.statusCode)));
                     } catch {
-                        reject(new Error(`API server odpověděl s chybovým kódem ${res.statusCode}`));
+                        reject(new Error(loc.strHttpError(res.statusCode)));
                     }
                 }
             });
         });
 
         req.on('error', (err: any) => {
-            reject(new Error(`Chyba sítě: ${err.message}`));
+            reject(new Error(`${loc.strNetworkError()} ${err.message}`));
         });
 
         // Nastavení timeoutu pro požadavek
         req.setTimeout(10000, () => {
             req.destroy();
-            reject(new Error('Požadavek na DeepSeek API vypršel (Timeout 10s).'));
+            reject(new Error(loc.strTimeout()));
         });
     });
 }
 
 function showDetails() {
     if (lastError && !lastBalanceData) {
-        const options = ['Zadat API klíč', 'Zkusit znovu'];
-        vscode.window.showErrorMessage(`Chyba DeepSeek API: ${lastError}`, ...options).then(selection => {
-            if (selection === 'Zadat API klíč') {
+        const options = [loc.strEnterKey(), loc.strRetry()];
+        vscode.window.showErrorMessage(loc.strApiError(lastError || ''), ...options).then(selection => {
+            if (selection === loc.strEnterKey()) {
                 vscode.commands.executeCommand('deepseek-account.enterApiKey');
-            } else if (selection === 'Zkusit znovu') {
+            } else if (selection === loc.strRetry()) {
                 refreshData();
             }
         });
@@ -471,13 +472,13 @@ function showDetails() {
 
     // Vytvoříme přehledný text s detaily a ukážeme jej v textovém editoru (jako virtuální Markdown soubor)
     // To je mnohem interaktivnější a přehlednější než obyčejná message box!
-    let detailsMarkdown = `# Stav DeepSeek Účtu a Dostupnost Modelů\n\n`;
+    let detailsMarkdown = `${loc.strReportTitle()}\n\n`;
 
     if (lastBalanceData) {
-        detailsMarkdown += `## 💰 Zůstatek na účtu\n`;
-        detailsMarkdown += `Dostupnost volání: ${lastBalanceData.is_available ? '✅ Účet je aktivní a má dostatek prostředků' : '❌ Nedostatek prostředků / Neaktivní'}\n\n`;
+        detailsMarkdown += `${loc.strReportBalance()}\n`;
+        detailsMarkdown += `${loc.strReportAvailability()} ${lastBalanceData.is_available ? loc.strReportBalanceYes() : loc.strReportBalanceNo()}\n\n`;
         
-        detailsMarkdown += `| Měna | Celkový zůstatek |\n`;
+        detailsMarkdown += `| ${loc.strReportCurrency()} | ${loc.strReportTotal()} |\n`;
         detailsMarkdown += `| :--- | :--- |\n`;
         
         for (const info of lastBalanceData.balance_infos) {
@@ -492,32 +493,32 @@ function showDetails() {
             : '';
         const stats = getConsumptionStats();
 
-        detailsMarkdown += `## 📊 Statistiky spotřeby\n\n`;
+        detailsMarkdown += `${loc.strReportConsumption()}\n\n`;
 
         if (stats.historyLength < 2) {
-            detailsMarkdown += `⏳ *Probíhá sběr dat... Pro zobrazení statistik je potřeba alespoň 2 aktualizace zůstatku.*\n\n`;
+            detailsMarkdown += `${loc.strReportCollecting()}\n\n`;
         } else {
-            detailsMarkdown += `| Období | Spotřeba |\n`;
+            detailsMarkdown += `| ${loc.strReportPeriod()} | ${loc.strReportConsumed()} |\n`;
             detailsMarkdown += `| :--- | :--- |\n`;
             if (stats.daily) {
-                const direction = stats.daily.consumed >= 0 ? '📉 utraceno' : '📈 dobito';
-                detailsMarkdown += `| **Denní** | ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)} ${direction} |\n`;
+                const direction = stats.daily.consumed >= 0 ? loc.strSpent() : loc.strDeposited();
+                detailsMarkdown += `| ${loc.strReportDaily()} | ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)} ${direction} |\n`;
             }
             if (stats.weekly) {
-                const direction = stats.weekly.consumed >= 0 ? '📉 utraceno' : '📈 dobito';
-                detailsMarkdown += `| **Týdenní** | ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)} ${direction} |\n`;
+                const direction = stats.weekly.consumed >= 0 ? loc.strSpent() : loc.strDeposited();
+                detailsMarkdown += `| ${loc.strReportWeekly()} | ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)} ${direction} |\n`;
             }
             if (stats.monthly) {
-                const direction = stats.monthly.consumed >= 0 ? '📉 utraceno' : '📈 dobito';
-                detailsMarkdown += `| **Měsíční** | ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)} ${direction} |\n`;
+                const direction = stats.monthly.consumed >= 0 ? loc.strSpent() : loc.strDeposited();
+                detailsMarkdown += `| ${loc.strReportMonthly()} | ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)} ${direction} |\n`;
             }
             if (stats.total) {
-                const direction = stats.total.consumed >= 0 ? '📉 utraceno' : '📈 dobito';
-                detailsMarkdown += `| **Celkem** | ${curSym}${Math.abs(stats.total.consumed).toFixed(4)} ${direction} |\n`;
+                const direction = stats.total.consumed >= 0 ? loc.strSpent() : loc.strDeposited();
+                detailsMarkdown += `| ${loc.strRowTotal()} | ${curSym}${Math.abs(stats.total.consumed).toFixed(4)} ${direction} |\n`;
             }
             if (stats.avgDaily) {
-                const direction = stats.avgDaily.consumed >= 0 ? '📊 průměrně' : '📊 průměrně';
-                detailsMarkdown += `| **Ø za den** | ${curSym}${Math.abs(stats.avgDaily.consumed).toFixed(4)} ${direction} (${stats.avgDaily.days} dnů) |\n`;
+                const direction = loc.strReportAvg();
+                detailsMarkdown += `| ${loc.strReportAvgDaily()} | ${curSym}${Math.abs(stats.avgDaily.consumed).toFixed(4)} ${direction} (${loc.strDays(stats.avgDaily.days)}) |\n`;
             }
             detailsMarkdown += `\n`;
             
@@ -529,24 +530,24 @@ function showDetails() {
                 stats.total ? Math.abs(stats.total.consumed) : 0
             );
             if (maxVal > 0) {
-                detailsMarkdown += `### Vizualizace spotřeby\n\n`;
+                detailsMarkdown += `${loc.strReportVisualization()}\n\n`;
                 detailsMarkdown += `\`\`\`\n`;
                 const barWidth = 30;
                 if (stats.daily) {
                     const barLen = Math.max(1, Math.round((Math.abs(stats.daily.consumed) / maxVal) * barWidth));
-                    detailsMarkdown += `Denní  ${'█'.repeat(barLen)} ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)}\n`;
+                    detailsMarkdown += `${loc.strBarDaily()}  ${'█'.repeat(barLen)} ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)}\n`;
                 }
                 if (stats.weekly) {
                     const barLen = Math.max(1, Math.round((Math.abs(stats.weekly.consumed) / maxVal) * barWidth));
-                    detailsMarkdown += `Týden  ${'█'.repeat(barLen)} ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)}\n`;
+                    detailsMarkdown += `${loc.strBarWeekly()}  ${'█'.repeat(barLen)} ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)}\n`;
                 }
                 if (stats.monthly) {
                     const barLen = Math.max(1, Math.round((Math.abs(stats.monthly.consumed) / maxVal) * barWidth));
-                    detailsMarkdown += `Měsíc  ${'█'.repeat(barLen)} ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)}\n`;
+                    detailsMarkdown += `${loc.strBarMonthly()}  ${'█'.repeat(barLen)} ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)}\n`;
                 }
                 if (stats.total) {
                     const barLen = Math.max(1, Math.round((Math.abs(stats.total.consumed) / maxVal) * barWidth));
-                    detailsMarkdown += `Celkem ${'█'.repeat(barLen)} ${curSym}${Math.abs(stats.total.consumed).toFixed(4)}\n`;
+                    detailsMarkdown += `${loc.strBarTotal()} ${'█'.repeat(barLen)} ${curSym}${Math.abs(stats.total.consumed).toFixed(4)}\n`;
                 }
                 detailsMarkdown += `\`\`\`\n\n`;
             }
@@ -554,19 +555,19 @@ function showDetails() {
     }
 
     if (lastModelsData) {
-        detailsMarkdown += `## 🤖 Dostupné modely DeepSeek\n\n`;
-        detailsMarkdown += `Níže je seznam modelů, které jsou aktuálně dostupné na vašem účtu:\n\n`;
+        detailsMarkdown += `${loc.strReportModels()}\n\n`;
+        detailsMarkdown += `${loc.strReportModelsDesc()}\n\n`;
         
         for (const model of lastModelsData.data) {
-            detailsMarkdown += `- **${model.id}** *(vlastník: ${model.owned_by || 'DeepSeek'})*\n`;
+            detailsMarkdown += `- **${model.id}** *(${loc.strReportOwner()} ${model.owned_by || 'DeepSeek'})*\n`;
         }
         detailsMarkdown += `\n`;
     } else {
-        detailsMarkdown += `## 🤖 Dostupné modely DeepSeek\n`;
-        detailsMarkdown += `*(Nepodařilo se načíst seznam modelů)*\n\n`;
+        detailsMarkdown += `${loc.strReportModels()}\n`;
+        detailsMarkdown += `${loc.strReportModelsError()}\n\n`;
     }
 
-    detailsMarkdown += `*Naposledy aktualizováno: ${new Date().toLocaleTimeString()}*\n`;
+    detailsMarkdown += `${loc.strReportUpdated()} ${new Date().toLocaleTimeString()}*\n`;
 
     // Zobrazení Markdown dokumentu
     vscode.workspace.openTextDocument({
