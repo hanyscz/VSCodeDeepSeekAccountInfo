@@ -9,8 +9,12 @@ All notable changes to this project will be documented in this file.
 ### Added
 - **EN:** **Status bar color indication** — when balance drops below the threshold, the status bar item background turns orange/yellow (using `statusBarItem.warningBackground`).
 - **EN:** **Unit tests** — added testing infrastructure (Mocha) and first unit tests for history logic.
-- **CZ:** **Barevná indikace stavového řádku** — při poklesu zůstatku pod práh se pozadí položky ve stavovém řádku zbarví do oranžova/žluta (využívá `statusBarItem.warningBackground`).
+- **EN:** **Interactive Dashboard** — new webview dashboard with Chart.js balance history graph, projection card, and consumption stats cards. Accessible via `DeepSeek: Show Dashboard` command.
+- **EN:** **Dashboard localization** — all dashboard UI strings now properly use EN/CZ localization instead of hardcoded bilingual text.
+- **CZ:** **Interaktivní Dashboard** — nové webview okno s Chart.js grafem historie zůstatku, kartou predikce a kartami statistik spotřeby. Přístupný přes příkaz `DeepSeek: Show Dashboard`.
 - **CZ:** **Unit testy** — přidána testovací infrastruktura (Mocha) a první unit testy pro logiku historie.
+- **CZ:** **Barevná indikace stavového řádku** — při poklesu zůstatku pod práh se pozadí položky ve stavovém řádku zbarví do oranžova/žluta (využívá `statusBarItem.warningBackground`).
+- **CZ:** **Lokalizace dashboardu** — všechny texty dashboardu nyní správně používají EN/CZ lokalizaci místo pevně zadaného dvojjazyčného textu.
 
 ### Changed
 - **EN:** **Modular Refactoring** — split `extension.ts` into `api.ts`, `history.ts`, and `ui.ts` for better maintainability.

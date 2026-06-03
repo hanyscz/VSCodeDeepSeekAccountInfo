@@ -2,11 +2,16 @@ import * as vscode from 'vscode';
 import * as loc from './localization';
 import { UserBalanceResponse, ModelsResponse } from './api';
 import { getConsumptionStats, getBalanceHistory } from './history';
+import { showDashboard } from './dashboard';
 
 let statusBarItem: vscode.StatusBarItem;
 
 export function initUI(item: vscode.StatusBarItem) {
     statusBarItem = item;
+}
+
+export function showDashboardUI(balance: UserBalanceResponse | undefined, error: string | undefined) {
+    showDashboard(balance, error);
 }
 
 export function updateStatusBar(balance: UserBalanceResponse | undefined, error: string | undefined) {

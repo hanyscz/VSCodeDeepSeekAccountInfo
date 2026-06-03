@@ -223,6 +223,35 @@ export function strTooltipRetry(): string {
     return getLang() === 'cs' ? 'Zkusit znovu' : 'Try again';
 }
 
+// === Dashboard ===
+export function strDashboardTitle(): string {
+    return getLang() === 'cs' ? 'DeepSeek Dashboard' : 'DeepSeek Dashboard';
+}
+export function strDashboardProjection(): string {
+    return getLang() === 'cs' ? '🔮 Predikce' : '🔮 Projection';
+}
+export function strDashboardDaysRemaining(count: number | string): string {
+    return getLang() === 'cs' ? `Zbývající dny: ${count}` : `Days remaining: ${count}`;
+}
+export function strDashboardDailyCard(): string {
+    return getLang() === 'cs' ? '📉 Denní' : '📉 Daily';
+}
+export function strDashboardWeeklyCard(): string {
+    return getLang() === 'cs' ? '📉 Týdenní' : '📉 Weekly';
+}
+export function strDashboardMonthlyCard(): string {
+    return getLang() === 'cs' ? '📉 Měsíční' : '📉 Monthly';
+}
+export function strDashboardTotalCard(): string {
+    return getLang() === 'cs' ? '📉 Celkem' : '📉 Total';
+}
+export function strDashboardAvgCard(): string {
+    return getLang() === 'cs' ? '📊 Ø/den' : '📊 Avg/day';
+}
+export function strDashboardBalanceCard(): string {
+    return getLang() === 'cs' ? '💰 Zůstatek' : '💰 Balance';
+}
+
 // === Prediction ===
 export function strPrediction(balance: string, avg: string, days: number): string {
     return getLang() === 'cs'

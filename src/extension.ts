@@ -6,7 +6,6 @@ import * as ui from './ui';
 
 let refreshIntervalTimer: NodeJS.Timeout | undefined;
 let lastBalanceData: api.UserBalanceResponse | undefined;
-let lastModelsData: api.ModelsResponse | undefined;
 let lastError: string | undefined;
 
 export function activate(context: vscode.ExtensionContext) {
@@ -39,7 +38,7 @@ export function activate(context: vscode.ExtensionContext) {
             refreshData();
         }),
         vscode.commands.registerCommand('deepseek-account.showDetails', () => {
-            ui.showDetailsInMarkdown(lastBalanceData, lastModelsData, lastError);
+            ui.showDashboardUI(lastBalanceData, lastError);
         })
     );
 
@@ -88,19 +87,17 @@ async function refreshData() {
     if (!apiKey) {
         ui.updateStatusBar(undefined, loc.strNoApiKeyError());
         lastBalanceData = undefined;
-        lastModelsData = undefined;
         lastError = loc.strNoApiKeyError();
         return;
     }
 
     try {
-        const [balance, models] = await Promise.all([
+        const [balance] = await Promise.all([
             api.fetchUserBalance(apiKey),
             api.fetchModels(apiKey)
         ]);
 
         lastBalanceData = balance;
-        lastModelsData = models;
         lastError = undefined;
 
         history.saveBalanceSnapshot(balance);
