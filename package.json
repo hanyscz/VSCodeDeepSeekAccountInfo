@@ -2,7 +2,7 @@
   "name": "vscode-deepseek-account-info",
   "displayName": "DeepSeek Account Info",
   "description": "Zobrazuje aktuální stav účtu DeepSeek a dostupnost modelů ve stavovém řádku (Status Bar).",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "icon": "small_v3.PNG",
   "publisher": "Hanyscz",
   "license": "MIT",
@@ -35,6 +35,18 @@
           "default": 10,
           "minimum": 1,
           "description": "Interval automatického obnovení stavu účtu (v minutách)."
+        },
+        "deepseek.balanceWarningThreshold": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "description": "Upozornit při poklesu zůstatku pod tuto hranici (0 = vypnuto)."
+        },
+        "deepseek.statusBarDisplay": {
+          "type": "string",
+          "default": "balance",
+          "enum": ["balance", "daily", "balance+daily", "projection"],
+          "description": "Co zobrazovat ve stavovém řádku: balance / daily / balance+daily / projection."
         }
       }
     },

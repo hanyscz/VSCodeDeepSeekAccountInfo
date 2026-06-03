@@ -213,9 +213,31 @@ export function strShowReport(): string {
 export function strRefresh(): string {
     return getLang() === 'cs' ? 'Aktualizovat' : 'Refresh';
 }
+export function strTooltipSettings(): string {
+    return getLang() === 'cs' ? '⚙️ Nastavení' : '⚙️ Settings';
+}
 export function strTooltipEnterKey(): string {
     return getLang() === 'cs' ? 'Zadat API klíč' : 'Enter API Key';
 }
 export function strTooltipRetry(): string {
     return getLang() === 'cs' ? 'Zkusit znovu' : 'Try again';
+}
+
+// === Prediction ===
+export function strPrediction(balance: string, avg: string, days: number): string {
+    return getLang() === 'cs'
+        ? `🔮 Při Ø ${avg}/den vydrží ${balance} ještě ~${days} dní`
+        : `🔮 At ${avg}/day, ${balance} will last ~${days} days`;
+}
+
+// === Low Balance Warning ===
+export function strLowBalanceWarning(currency: string, amount: string, threshold: string): string {
+    return getLang() === 'cs'
+        ? `⚠️ Nízký zůstatek: ${currency}${amount} (práh: ${currency}${threshold})`
+        : `⚠️ Low balance: ${currency}${amount} (threshold: ${currency}${threshold})`;
+}
+
+// === History Chart ===
+export function strHistoryChart(): string {
+    return getLang() === 'cs' ? '### 📈 Historie zůstatku' : '### 📈 Balance History';
 }

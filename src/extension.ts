@@ -167,6 +167,9 @@ async function refreshData() {
         saveBalanceSnapshot(balance);
 
         updateStatusBar(balance);
+
+        // Kontrola nízkého zůstatku
+        checkLowBalance(balance);
     } catch (err: any) {
         lastError = err?.message || String(err);
         statusBarItem.text = loc.strConnectionError();
@@ -176,23 +179,99 @@ async function refreshData() {
     }
 }
 
+function getCurrencySymbol(currency: string): string {
+    return currency === 'CNY' ? '¥' : currency === 'USD' ? '$' : `${currency} `;
+}
+
+function getCurrencySymbolFromData(): string {
+    if (!lastBalanceData || !lastBalanceData.balance_infos.length) return '';
+    const c = lastBalanceData.balance_infos[0].currency;
+    return getCurrencySymbol(c);
+}
+
 function updateStatusBar(balance: UserBalanceResponse) {
+    const config = vscode.workspace.getConfiguration('deepseek');
+    const displayMode = config.get<string>('statusBarDisplay', 'balance');
+
     if (balance.balance_infos && balance.balance_infos.length > 0) {
-        // Zkusíme najít USD peněženku, pokud existuje. Jinak vezmeme první dostupnou.
         let displayBalance = balance.balance_infos.find(b => parseFloat(b.total_balance) > 0);
         if (!displayBalance) {
             displayBalance = balance.balance_infos[0];
         }
 
-        const currencySymbol = displayBalance.currency === 'CNY' ? '¥' : displayBalance.currency === 'USD' ? '$' : `${displayBalance.currency} `;
+        const currencySymbol = getCurrencySymbol(displayBalance.currency);
         const amount = parseFloat(displayBalance.total_balance).toFixed(2);
-        
-        statusBarItem.text = `$(credit-card) ${currencySymbol}${amount}`;
+        const curSym = getCurrencySymbolFromData();
+
+        const stats = getConsumptionStats();
+        let text = '';
+
+        switch (displayMode) {
+            case 'daily': {
+                const d = stats.daily ? `${curSym}${Math.abs(stats.daily.consumed).toFixed(4)}` : '—';
+                text = `$(credit-card) 📉 ${d}`;
+                break;
+            }
+            case 'balance+daily': {
+                const d = stats.daily ? `📉 ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)}` : '';
+                text = `$(credit-card) ${currencySymbol}${amount} ${d}`;
+                break;
+            }
+            case 'projection': {
+                const proj = getPredictionText(curSym);
+                text = proj
+                    ? `$(credit-card) 🔮 ${proj}`
+                    : `$(credit-card) ${currencySymbol}${amount}`;
+                break;
+            }
+            default: // 'balance'
+                text = `$(credit-card) ${currencySymbol}${amount}`;
+        }
+
+        statusBarItem.text = text;
         statusBarItem.tooltip = buildTooltipMarkdown();
     } else {
         statusBarItem.text = loc.strActive();
         statusBarItem.tooltip = buildTooltipMarkdown();
     }
+}
+
+function checkLowBalance(balance: UserBalanceResponse) {
+    const config = vscode.workspace.getConfiguration('deepseek');
+    const threshold = config.get<number>('balanceWarningThreshold', 0);
+    if (threshold <= 0) return;
+
+    for (const info of balance.balance_infos) {
+        const total = parseFloat(info.total_balance);
+        if (total < threshold) {
+            const sym = getCurrencySymbol(info.currency);
+            const msg = loc.strLowBalanceWarning(sym, total.toFixed(2), sym + threshold.toFixed(2));
+            vscode.window.showWarningMessage(msg, 'Dobít kredit / Top up').then(sel => {
+                if (sel) {
+                    vscode.env.openExternal(vscode.Uri.parse('https://platform.deepseek.com'));
+                }
+            });
+            break; // jen jedno upozornění
+        }
+    }
+}
+
+function getPredictionText(curSym: string): string | null {
+    const stats = getConsumptionStats();
+    if (!stats.avgDaily || stats.avgDaily.consumed <= 0) return null;
+    if (!lastBalanceData || !lastBalanceData.balance_infos.length) return null;
+
+    const info = lastBalanceData.balance_infos.find(b => parseFloat(b.total_balance) > 0)
+        || lastBalanceData.balance_infos[0];
+    const currentBalance = parseFloat(info.total_balance);
+    if (currentBalance <= 0) return null;
+
+    const daysLeft = Math.round(currentBalance / stats.avgDaily.consumed);
+    if (daysLeft < 1) return null;
+
+    const avgStr = curSym + stats.avgDaily.consumed.toFixed(4);
+    const balStr = curSym + currentBalance.toFixed(2);
+    return loc.strPrediction(balStr, avgStr, daysLeft);
 }
 
 function saveBalanceSnapshot(balance: UserBalanceResponse) {
@@ -389,6 +468,13 @@ function buildTooltipMarkdown(): vscode.MarkdownString {
             }
             tooltip.appendMarkdown(lines.join('\n\n') + '\n\n');
         }
+
+        // Predikce
+        const curSymPred = getCurrencySymbolFromData();
+        const predText = getPredictionText(curSymPred);
+        if (predText) {
+            tooltip.appendMarkdown(`${predText}\n\n`);
+        }
     }
 
     if (lastModelsData) {
@@ -402,7 +488,8 @@ function buildTooltipMarkdown(): vscode.MarkdownString {
 
     tooltip.appendMarkdown(`---\n`);
     tooltip.appendMarkdown(`${loc.strReportUpdated()} ${new Date().toLocaleTimeString()}*\n\n`);
-    tooltip.appendMarkdown(`[${loc.strShowReport()}](command:deepseek-account.showDetails) | [${loc.strRefresh()}](command:deepseek-account.refresh)`);
+    const settingsQuery = encodeURIComponent(JSON.stringify({ query: '@ext:Hanyscz.vscode-deepseek-account-info' }));
+    tooltip.appendMarkdown(`[${loc.strShowReport()}](command:deepseek-account.showDetails) | [${loc.strRefresh()}](command:deepseek-account.refresh) | [${loc.strTooltipSettings()}](command:workbench.action.openSettings?${settingsQuery})`);
 
     return tooltip;
 }
@@ -553,6 +640,58 @@ function showDetails() {
                 }
                 detailsMarkdown += `\`\`\`\n\n`;
             }
+        }
+
+        // Predikce
+        const predText = getPredictionText(curSym);
+        if (predText) {
+            detailsMarkdown += `### 🔮 Predikce\n\n> ${predText}\n\n`;
+        }
+
+        // Graf historie zůstatku
+        const history = getBalanceHistory();
+        if (history.length >= 3) {
+            const sorted = [...history].sort((a, b) => a.timestamp - b.timestamp);
+
+            // Vzorkování – max 20 sloupců pro přehlednost
+            const maxCols = 20;
+            let sampled = sorted;
+            if (sorted.length > maxCols) {
+                const step = Math.floor(sorted.length / maxCols);
+                sampled = [];
+                for (let i = 0; i < sorted.length; i += step) {
+                    sampled.push(sorted[i]);
+                }
+                // Vždy zahrneme poslední
+                if (sampled[sampled.length - 1] !== sorted[sorted.length - 1]) {
+                    sampled.push(sorted[sorted.length - 1]);
+                }
+            }
+
+            const minBal = Math.min(...sampled.map(s => s.totalBalance));
+            const maxBal = Math.max(...sampled.map(s => s.totalBalance));
+            const range = Math.max(maxBal - minBal, 0.001);
+
+            detailsMarkdown += `${loc.strHistoryChart()}\n\n`;
+            detailsMarkdown += `\`\`\`\n`;
+            const chartHeight = 5;
+            const labelWidth = 10;
+            for (let row = chartHeight; row >= 1; row--) {
+                const threshold = minBal + (range * row) / chartHeight;
+                const label = (curSym + threshold.toFixed(2)).padStart(labelWidth, ' ');
+                detailsMarkdown += label + ' ┤';
+                for (const snap of sampled) {
+                    detailsMarkdown += snap.totalBalance >= threshold ? '█' : ' ';
+                }
+                detailsMarkdown += '\n';
+            }
+            // Spodní osa
+            const firstDate = new Date(sampled[0].timestamp).toLocaleDateString();
+            const lastDate = new Date(sampled[sampled.length - 1].timestamp).toLocaleDateString();
+            const axisLen = sampled.length;
+            detailsMarkdown += ' '.repeat(labelWidth) + ' └' + '─'.repeat(axisLen) + '\n';
+            detailsMarkdown += ' '.repeat(labelWidth + 2) + firstDate + ' '.repeat(Math.max(1, axisLen - firstDate.length - lastDate.length)) + lastDate + '\n';
+            detailsMarkdown += `\`\`\`\n\n`;
         }
     }
 

@@ -19,6 +19,7 @@ A Visual Studio Code extension that monitors your DeepSeek account balance and m
 *   **📄 Markdown Report:** Click the Status Bar to open a detailed report with balance tables, consumption stats, bar charts, and model list.
 *   **🔑 Secure API Key Entry:** Enter your API key via a masked input prompt or configure it in VS Code settings.
 *   **⏱️ Configurable Refresh Rate:** Automatic update interval (default: 10 minutes).
+*   **⚙️ Settings Shortcut:** The tooltip includes a link to quickly open all extension settings.
 
 <p align="center">
   <table>
@@ -55,6 +56,8 @@ A Visual Studio Code extension that monitors your DeepSeek account balance and m
 | :--- | :--- | :--- |
 | `deepseek.apiKey` | `""` | API key for DeepSeek API access |
 | `deepseek.refreshInterval` | `10` | Auto-refresh interval (minutes) |
+| `deepseek.balanceWarningThreshold` | `0` | Warn when balance drops below this value (`0` = off) |
+| `deepseek.statusBarDisplay` | `balance` | Status bar mode: `balance`, `daily`, `balance+daily`, `projection` |
 
 ### Consumption Statistics
 
@@ -71,6 +74,26 @@ After collecting at least 2 snapshots, the following stats become available:
 - 📊 **Avg/day** — average daily consumption
 
 If the balance increases between readings (e.g., top-up), the deposit is ignored — only actual balance decreases are counted as consumption.
+
+### 🔮 Consumption Prediction
+
+The tooltip and detail report show how many days your current balance will last at your average daily consumption rate.
+
+### 📈 Balance History Chart
+
+The detail report includes a simple ASCII chart showing balance changes over time.
+
+### 🚨 Low Balance Warning
+
+Set `deepseek.balanceWarningThreshold` in settings (e.g., `1.0` for $1). When your balance drops below the threshold, a VS Code notification appears with a link to top up on the DeepSeek platform.
+
+### 🎨 Status Bar Customization
+
+Set `deepseek.statusBarDisplay` to one of:
+- `balance` — show current balance (default)
+- `daily` — show today's consumption
+- `balance+daily` — show both
+- `projection` — show days remaining prediction
 
 
 ### API Documentation
@@ -93,6 +116,7 @@ Rozšíření pro Visual Studio Code, které v reálném čase monitoruje a zobr
 *   **📄 Detailní report (Markdown):** Kliknutím na stavový řádek se otevře přehledný Markdown dokument s tabulkou zůstatků, statistikami spotřeby, sloupcovým grafem a seznamem modelů.
 *   **🔑 Bezpečné zadání API klíče:** Možnost zadat API klíč maskovaným vstupem přímo přes VS Code nebo v nastavení.
 *   **⏱️ Nastavitelná perioda:** Frekvence automatických aktualizací (výchozí 10 minut).
+*   **⚙️ Zástupce nastavení:** Tooltip obsahuje odkaz pro rychlé otevření všech nastavení rozšíření.
 
 <p align="center">
   <table>
@@ -129,6 +153,8 @@ Rozšíření pro Visual Studio Code, které v reálném čase monitoruje a zobr
 | :--- | :--- | :--- |
 | `deepseek.apiKey` | `""` | API klíč pro přístup k DeepSeek API |
 | `deepseek.refreshInterval` | `10` | Interval automatického obnovení (v minutách) |
+| `deepseek.balanceWarningThreshold` | `0` | Upozornit při poklesu zůstatku pod tuto hranici (`0` = vypnuto) |
+| `deepseek.statusBarDisplay` | `balance` | Režim stavového řádku: `balance`, `daily`, `balance+daily`, `projection` |
 
 ### Statistiky spotřeby
 
@@ -145,6 +171,26 @@ Po nasbírání alespoň 2 snapshotů se automaticky zobrazí:
 - 📊 **Ø/den** — průměrná denní spotřeba
 
 Pokud zůstatek mezi měřeními vzroste (např. dobití kreditu), dobití se ignoruje — do spotřeby se počítají jen reálné poklesy zůstatku.
+
+### 🔮 Predikce spotřeby
+
+Tooltip a detailní report ukazují, na kolik dní ještě aktuální zůstatek vydrží při průměrné denní spotřebě.
+
+### 📈 Graf historie zůstatku
+
+Detailní report obsahuje jednoduchý ASCII graf zobrazující vývoj zůstatku v čase.
+
+### 🚨 Upozornění na nízký zůstatek
+
+Nastavte `deepseek.balanceWarningThreshold` v nastavení (např. `1.0` pro $1). Při poklesu zůstatku pod práh se zobrazí notifikace s odkazem na dobití kreditu.
+
+### 🎨 Customizace stavového řádku
+
+Nastavte `deepseek.statusBarDisplay` na jednu z možností:
+- `balance` — zobrazuje aktuální zůstatek (výchozí)
+- `daily` — zobrazuje dnešní spotřebu
+- `balance+daily` — zobrazuje obojí
+- `projection` — zobrazuje predikci zbývajících dní
 
 
 ### API dokumentace
