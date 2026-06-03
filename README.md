@@ -64,7 +64,7 @@ The extension saves a balance snapshot on every update. Data is persisted in two
 2. **JSON file on disk** (`%APPDATA%\deepseek-account-info\balance-history.json`) — survives extension reinstallation.
 
 After collecting at least 2 snapshots, the following stats become available:
-- 📉 **Daily consumption** — change over the last 24 hours
+- 📉 **Daily consumption** — change during the current calendar day
 - 📉 **Weekly consumption** — change over the last 7 days
 - 📉 **Monthly consumption** — change over the last 30 days
 - 📉 **Total consumption** — since the first saved snapshot
@@ -138,7 +138,7 @@ Rozšíření ukládá snapshoty zůstatku při každé aktualizaci. Data jsou p
 2. **JSON soubor na disku** (`%APPDATA%\deepseek-account-info\balance-history.json`) — přežije i úplnou reinstalaci rozšíření.
 
 Po nasbírání alespoň 2 snapshotů se automaticky zobrazí:
-- 📉 **Denní spotřeba** — změna za posledních 24 hodin
+- 📉 **Denní spotřeba** — změna během aktuálního kalendářního dne
 - 📉 **Týdenní spotřeba** — změna za posledních 7 dní
 - 📉 **Měsíční spotřeba** — změna za posledních 30 dní
 - 📉 **Celková spotřeba** — od první uložené aktualizace

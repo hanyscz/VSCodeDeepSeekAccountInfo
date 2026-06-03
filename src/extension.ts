@@ -272,6 +272,11 @@ function getConsumptionStats(): ConsumptionStats {
     const current = history[history.length - 1].totalBalance;
     const now = Date.now();
 
+    // Začátek dnešního kalendářního dne (00:00:00.000)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const startOfTodayMs = startOfToday.getTime();
+
     const MS_DAY = 24 * 60 * 60 * 1000;
     const MS_WEEK = 7 * MS_DAY;
     const MS_MONTH = 30 * MS_DAY;
@@ -301,7 +306,7 @@ function getConsumptionStats(): ConsumptionStats {
         return { consumed: diff, label };
     }
 
-    const daily = calcSince(now - MS_DAY);
+    const daily = calcSince(startOfTodayMs);
     const weekly = calcSince(now - MS_WEEK);
     const monthly = calcSince(now - MS_MONTH);
     

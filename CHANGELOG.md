@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## 0.5.0 — 2026-06-03
+
+### Changed
+
+- **EN:** Daily consumption statistics now use the current calendar day (midnight to now) instead of a rolling 24-hour window. This makes it easier to understand how many tokens were used each working day.
+
+**CZ:** Denní statistika spotřeby nyní používá aktuální kalendářní den (od půlnoci do teď) místo klouzavého 24hodinového okna. To usnadňuje pochopení, kolik tokenů bylo spotřebováno každý pracovní den.
+
+---
+
 ## 0.4.0 — 2026-06-02
 
 ### Added
