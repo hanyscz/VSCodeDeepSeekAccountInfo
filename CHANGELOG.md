@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## 0.9.0 — 2026-06-03
+
+### Added
+- **EN:** **Status bar color indication** — when balance drops below the threshold, the status bar item background turns orange/yellow (using `statusBarItem.warningBackground`).
+- **EN:** **Unit tests** — added testing infrastructure (Mocha) and first unit tests for history logic.
+- **CZ:** **Barevná indikace stavového řádku** — při poklesu zůstatku pod práh se pozadí položky ve stavovém řádku zbarví do oranžova/žluta (využívá `statusBarItem.warningBackground`).
+- **CZ:** **Unit testy** — přidána testovací infrastruktura (Mocha) a první unit testy pro logiku historie.
+
+### Changed
+- **EN:** **Modular Refactoring** — split `extension.ts` into `api.ts`, `history.ts`, and `ui.ts` for better maintainability.
+- **CZ:** **Modulární refaktoring** — rozdělení `extension.ts` do modulů `api.ts`, `history.ts` a `ui.ts` pro lepší udržitelnost.
+
+---
+
 ## 0.8.0 — 2026-06-03
 
 ### Added

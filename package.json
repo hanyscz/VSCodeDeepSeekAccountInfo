@@ -2,7 +2,7 @@
   "name": "vscode-deepseek-account-info",
   "displayName": "DeepSeek Account Info",
   "description": "Zobrazuje aktuální stav účtu DeepSeek a dostupnost modelů ve stavovém řádku (Status Bar).",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "icon": "small_v3.PNG",
   "publisher": "Hanyscz",
   "license": "MIT",
@@ -40,7 +40,7 @@
           "type": "number",
           "default": 0,
           "minimum": 0,
-          "description": "Upozornit při poklesu zůstatku pod tuto hranici (0 = vypnuto)."
+          "description": "Upozornit (barevně ve stavovém řádku) při poklesu zůstatku pod tuto hranici (0 = vypnuto)."
         },
         "deepseek.statusBarDisplay": {
           "type": "string",
@@ -75,11 +75,15 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
+    "test:unit": "mocha -r ts-node/register src/test/**/*.test.ts",
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {
+    "@types/mocha": "^10.0.10",
     "@types/node": "^16.11.7",
     "@types/vscode": "^1.75.0",
+    "mocha": "^11.7.6",
+    "ts-node": "^10.9.2",
     "typescript": "^4.9.4"
   }
 }

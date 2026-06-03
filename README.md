@@ -86,7 +86,7 @@ The detail report includes a simple ASCII chart showing balance changes over tim
 
 ### 🚨 Low Balance Warning
 
-Set `deepseek.balanceWarningThreshold` in settings (e.g., `1.0` for $1). When your balance drops below the threshold, a VS Code notification appears with a link to top up on the DeepSeek platform.
+Set `deepseek.balanceWarningThreshold` in settings (e.g., `1.0` for $1). When your balance drops below the threshold, a VS Code notification appears with a link to top up and the **Status Bar changes color** to warning (orange/yellow).
 
 ### 🎨 Status Bar Customization
 
@@ -184,7 +184,7 @@ Detailní report obsahuje jednoduchý ASCII graf zobrazující vývoj zůstatku 
 
 ### 🚨 Upozornění na nízký zůstatek
 
-Nastavte `deepseek.balanceWarningThreshold` v nastavení (např. `1.0` pro $1). Při poklesu zůstatku pod práh se zobrazí notifikace s odkazem na dobití kreditu.
+Nastavte `deepseek.balanceWarningThreshold` v nastavení (např. `1.0` pro $1). Při poklesu zůstatku pod práh se zobrazí notifikace s odkazem na dobití kreditu a **stavový řádek změní barvu** na varovnou (oranžová/žlutá).
 
 ### 🎨 Customizace stavového řádku
 
