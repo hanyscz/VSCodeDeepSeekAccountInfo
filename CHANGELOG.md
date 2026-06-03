@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## 0.8.0 — 2026-06-03
+
+### Added
+
+- **EN:** **Customizable history file path** — new setting `deepseek.historyFilePath`. Set a custom path (e.g., OneDrive/Dropbox) to sync balance history across multiple PCs.
+- **EN:** **Optimized data storage** — JSON file is now the primary data source. globalState is used as local cache only. History is automatically pruned (full resolution for last 7 days, 1 snapshot/day for older data, max 3000 snapshots).
+
+- **CZ:** **Customizovatelná cesta k historii** — nové nastavení `deepseek.historyFilePath`. Nastavením vlastní cesty (OneDrive/Dropbox) lze synchronizovat historii mezi více PC.
+- **CZ:** **Optimalizované ukládání** — JSON soubor je nyní primárním zdrojem. globalState slouží jen jako lokální cache. Historie se automaticky čistí (plné rozlišení pro posledních 7 dní, 1 snapshot/den pro starší data, max 3000 snapshotů).
+
+---
+
 ## 0.7.0 — 2026-06-03
 
 ### Added

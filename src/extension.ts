@@ -46,12 +46,21 @@ interface ConsumptionStats {
 
 const HISTORY_KEY = 'deepseekBalanceHistory';
 
-// Cesta k souboru pro perzistentní uložení historie (přežije i odinstalaci rozšíření)
-const HISTORY_FILE = path.join(
-    process.env.APPDATA || path.join(process.env.HOME || '', '.config'),
-    'deepseek-account-info',
-    'balance-history.json'
-);
+// Uživatel nastaví jen složku (např. D:\ nebo D:\OneDrive), název souboru je vždy fixní
+function getHistoryFilePath(): string {
+    const config = vscode.workspace.getConfiguration('deepseek');
+    const customPath = config.get<string>('historyFilePath', '').trim();
+    if (customPath) {
+        return path.join(customPath, 'balance-history.json');
+    }
+    return path.join(
+        process.env.APPDATA || path.join(process.env.HOME || '', '.config'),
+        'deepseek-account-info',
+        'balance-history.json'
+    );
+}
+
+const MAX_SNAPSHOTS = 3000;
 
 let statusBarItem: vscode.StatusBarItem;
 let refreshIntervalTimer: any;
@@ -303,32 +312,68 @@ function getBalanceHistory(): BalanceSnapshot[] {
         return [];
     }
 
-    // Nejprve zkusíme načíst z globálního state (rychlé)
+    // JSON soubor = primární zdroj (umožňuje sync mezi PC)
+    const fromFile = loadHistoryFromFile();
+    if (fromFile.length > 0) {
+        // Aktualizujeme globalState jako lokální cache
+        extensionContext.globalState.update(HISTORY_KEY, fromFile);
+        return fromFile;
+    }
+
+    // Fallback: globalState (první spuštění, soubor ještě neexistuje)
     const fromState = extensionContext.globalState.get<BalanceSnapshot[]>(HISTORY_KEY, []);
     if (fromState.length > 0) {
+        // Založíme soubor pro příště
+        saveHistoryToFile(fromState);
         return fromState;
     }
 
-    // Pokud v globalState nic není, zkusíme soubor (např. po reinstalaci)
-    return loadHistoryFromFile();
+    return [];
 }
 
 function saveHistoryToFile(history: BalanceSnapshot[]) {
     try {
-        const dir = path.dirname(HISTORY_FILE);
+          const pruned = pruneHistory(history);
+        const dir = path.dirname(getHistoryFilePath());
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        fs.writeFileSync(HISTORY_FILE, JSON.stringify(history, null, 2), 'utf-8');
+        fs.writeFileSync(getHistoryFilePath(), JSON.stringify(pruned, null, 2), 'utf-8');
     } catch {
-        // Tichá chyba — soubor je jen záloha, není kritický
+        // Tichá chyba
     }
+}
+
+function pruneHistory(history: BalanceSnapshot[]): BalanceSnapshot[] {
+    if (history.length <= MAX_SNAPSHOTS) return history;
+
+    const sorted = [...history].sort((a, b) => a.timestamp - b.timestamp);
+    const now = Date.now();
+    const MS_DAY = 24 * 60 * 60 * 1000;
+    const MS_WEEK = 7 * MS_DAY;
+
+    // Vždy ponecháme kompletní posledních 7 dní (plné rozlišení)
+    const recent = sorted.filter(s => s.timestamp >= now - MS_WEEK);
+    const old = sorted.filter(s => s.timestamp < now - MS_WEEK);
+    if (old.length === 0) return history;
+
+    // Pro starší data: 1 snapshot denně
+    const days = new Map<string, BalanceSnapshot>();
+    for (const snap of old) {
+        const dayKey = new Date(snap.timestamp).toISOString().slice(0, 10);
+        if (!days.has(dayKey) || snap.timestamp < days.get(dayKey)!.timestamp) {
+            days.set(dayKey, snap);
+        }
+    }
+
+    return [...recent, ...days.values()].sort((a, b) => a.timestamp - b.timestamp);
 }
 
 function loadHistoryFromFile(): BalanceSnapshot[] {
     try {
-        if (fs.existsSync(HISTORY_FILE)) {
-            const data = fs.readFileSync(HISTORY_FILE, 'utf-8');
+        const filePath = getHistoryFilePath();
+        if (fs.existsSync(filePath)) {
+            const data = fs.readFileSync(filePath, 'utf-8');
             const parsed = JSON.parse(data);
             if (Array.isArray(parsed)) {
                 return parsed as BalanceSnapshot[];

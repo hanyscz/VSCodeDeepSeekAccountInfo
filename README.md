@@ -58,13 +58,14 @@ A Visual Studio Code extension that monitors your DeepSeek account balance and m
 | `deepseek.refreshInterval` | `10` | Auto-refresh interval (minutes) |
 | `deepseek.balanceWarningThreshold` | `0` | Warn when balance drops below this value (`0` = off) |
 | `deepseek.statusBarDisplay` | `balance` | Status bar mode: `balance`, `daily`, `balance+daily`, `projection` |
+| `deepseek.historyFilePath` | `""` | Custom folder for history file (e.g. `D:\OneDrive`). File `balance-history.json` is created automatically. Empty = default (`%APPDATA%`). |
 
 ### Consumption Statistics
 
 The extension saves a balance snapshot on every update. Data is persisted in two places:
 
-1. **VS Code globalState** — survives VS Code and extension updates.
-2. **JSON file on disk** (`%APPDATA%\deepseek-account-info\balance-history.json`) — survives extension reinstallation.
+1. **JSON file on disk** (`%APPDATA%\deepseek-account-info\balance-history.json`) — primary source, survives extension reinstallation. Supports custom path via `deepseek.historyFilePath` (set to a cloud folder like OneDrive/Dropbox to sync across multiple PCs).
+2. **VS Code globalState** — local cache for fast access.
 
 After collecting at least 2 snapshots, the following stats become available:
 - 📉 **Daily consumption** — change during the current calendar day
@@ -155,13 +156,14 @@ Rozšíření pro Visual Studio Code, které v reálném čase monitoruje a zobr
 | `deepseek.refreshInterval` | `10` | Interval automatického obnovení (v minutách) |
 | `deepseek.balanceWarningThreshold` | `0` | Upozornit při poklesu zůstatku pod tuto hranici (`0` = vypnuto) |
 | `deepseek.statusBarDisplay` | `balance` | Režim stavového řádku: `balance`, `daily`, `balance+daily`, `projection` |
+| `deepseek.historyFilePath` | `""` | Vlastní složka pro soubor historie (např. `D:\OneDrive`). Soubor `balance-history.json` se vytvoří automaticky. Prázdné = výchozí (`%APPDATA%`). |
 
 ### Statistiky spotřeby
 
 Rozšíření ukládá snapshoty zůstatku při každé aktualizaci. Data jsou persistentní:
 
-1. **VS Code globalState** — přežije aktualizace VS Code i rozšíření.
-2. **JSON soubor na disku** (`%APPDATA%\deepseek-account-info\balance-history.json`) — přežije i úplnou reinstalaci rozšíření.
+1. **JSON soubor na disku** (`%APPDATA%\deepseek-account-info\balance-history.json`) — primární zdroj, přežije reinstalaci. Lze nastavit vlastní cestu (`deepseek.historyFilePath`) pro sync mezi PC (např. OneDrive/Dropbox).
+2. **VS Code globalState** — lokální cache pro rychlý přístup.
 
 Po nasbírání alespoň 2 snapshotů se automaticky zobrazí:
 - 📉 **Denní spotřeba** — změna během aktuálního kalendářního dne

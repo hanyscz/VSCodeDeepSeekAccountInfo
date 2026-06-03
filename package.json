@@ -2,7 +2,7 @@
   "name": "vscode-deepseek-account-info",
   "displayName": "DeepSeek Account Info",
   "description": "Zobrazuje aktuální stav účtu DeepSeek a dostupnost modelů ve stavovém řádku (Status Bar).",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "icon": "small_v3.PNG",
   "publisher": "Hanyscz",
   "license": "MIT",
@@ -47,6 +47,11 @@
           "default": "balance",
           "enum": ["balance", "daily", "balance+daily", "projection"],
           "description": "Co zobrazovat ve stavovém řádku: balance / daily / balance+daily / projection."
+        },
+        "deepseek.historyFilePath": {
+          "type": "string",
+          "default": "",
+          "description": "Složka pro ukládání historie (např. D:\\OneDrive nebo D:\\)\nSoubor balance-history.json se vytvoří automaticky.\nPrázdné = výchozí umístění (%APPDATA%)."
         }
       }
     },
