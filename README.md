@@ -70,7 +70,7 @@ After collecting at least 2 snapshots, the following stats become available:
 - 📉 **Total consumption** — since the first saved snapshot
 - 📊 **Avg/day** — average daily consumption
 
-If the balance increases between readings (e.g., top-up), it shows as 📈 deposited.
+If the balance increases between readings (e.g., top-up), the deposit is ignored — only actual balance decreases are counted as consumption.
 
 
 ### API Documentation
@@ -144,7 +144,7 @@ Po nasbírání alespoň 2 snapshotů se automaticky zobrazí:
 - 📉 **Celková spotřeba** — od první uložené aktualizace
 - 📊 **Ø/den** — průměrná denní spotřeba
 
-Pokud zůstatek mezi měřeními vzroste (např. dobití kreditu), zobrazí se 📈 dobito.
+Pokud zůstatek mezi měřeními vzroste (např. dobití kreditu), dobití se ignoruje — do spotřeby se počítají jen reálné poklesy zůstatku.
 
 
 ### API dokumentace

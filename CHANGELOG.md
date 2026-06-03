@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## 0.6.0 — 2026-06-03
+
+### Fixed
+
+- **EN:** Consumption statistics now correctly ignore balance increases (top-ups). Only actual balance decreases between consecutive snapshots are counted as consumption. Previously, depositing credit would incorrectly affect the consumption calculation.
+
+**CZ:** Statistiky spotřeby nyní správně ignorují navýšení zůstatku (dobití kreditu). Do spotřeby se počítají jen reálné poklesy zůstatku mezi jednotlivými snapshoty. Dříve došlo k chybnému ovlivnění výpočtu při dobití kreditu.
+
+---
+
 ## 0.5.0 — 2026-06-03
 
 ### Changed

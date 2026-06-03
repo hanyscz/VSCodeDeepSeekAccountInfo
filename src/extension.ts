@@ -264,12 +264,14 @@ function loadHistoryFromFile(): BalanceSnapshot[] {
 function getConsumptionStats(): ConsumptionStats {
     const history = getBalanceHistory();
     const historyLength = history.length;
-    
+
     if (history.length < 2) {
         return { daily: null, weekly: null, monthly: null, total: null, avgDaily: null, historyLength };
     }
 
-    const current = history[history.length - 1].totalBalance;
+    // Seřadíme snapshoty chronologicky (pro jistotu)
+    const sorted = [...history].sort((a, b) => a.timestamp - b.timestamp);
+
     const now = Date.now();
 
     // Začátek dnešního kalendářního dne (00:00:00.000)
@@ -281,50 +283,54 @@ function getConsumptionStats(): ConsumptionStats {
     const MS_WEEK = 7 * MS_DAY;
     const MS_MONTH = 30 * MS_DAY;
 
-    function calcSince(minTimestamp: number): { consumed: number; label: string } | null {
-        let prevBalance: number | null = null;
-        let prevTimestamp = 0;
-        for (let i = history.length - 2; i >= 0; i--) {
-            if (history[i].timestamp <= minTimestamp || i === 0) {
-                // Vezmeme snapshot nejbližší požadovanému času, nebo nejstarší
-                prevBalance = history[i].totalBalance;
-                prevTimestamp = history[i].timestamp;
-                break;
+    /**
+     * Spočítá spotřebu v daném časovém okně.
+     * Sčítá jen POKLESY zůstatku mezi dvěma po sobě jdoucími snapshoty.
+     * Navýšení (dobití kreditu) ignoruje — nezapočítává se do spotřeby.
+     */
+    function calcConsumptionSince(minTimestamp: number): number | null {
+        const snapshots = sorted.filter(s => s.timestamp >= minTimestamp);
+        if (snapshots.length < 2) return null;
+
+        let totalConsumed = 0;
+        for (let i = 1; i < snapshots.length; i++) {
+            const diff = snapshots[i - 1].totalBalance - snapshots[i].totalBalance;
+            if (diff > 0) {
+                totalConsumed += diff;
             }
         }
-        // Zkusíme najít nejbližší požadovanému časovému oknu
-        if (prevBalance === null) {
-            // Vezmeme nejstarší záznam
-            const oldest = history[0];
-            prevBalance = oldest.totalBalance;
-            prevTimestamp = oldest.timestamp;
-        }
-
-        const diff = prevBalance - current;
-        const daysDiff = Math.max(1, Math.round((now - prevTimestamp) / MS_DAY));
-        const label = `${diff >= 0 ? '' : '+'}${Math.abs(diff).toFixed(4)} (${daysDiff}d)`;
-        return { consumed: diff, label };
+        return totalConsumed;
     }
 
-    const daily = calcSince(startOfTodayMs);
-    const weekly = calcSince(now - MS_WEEK);
-    const monthly = calcSince(now - MS_MONTH);
-    
-    // Celková spotřeba: od prvního záznamu
-    let total: { consumed: number; label: string } | null = null;
-    let avgDaily: { consumed: number; days: number } | null = null;
-    if (history.length >= 2) {
-        const oldest = history[0];
-        const diff = oldest.totalBalance - current;
-        const totalDays = Math.max(1, Math.round((now - oldest.timestamp) / MS_DAY));
-        total = {
-            consumed: diff,
-            label: `${diff >= 0 ? '' : '+'}${Math.abs(diff).toFixed(4)} (${totalDays}d)`
+    const daily = dailyConsumption();
+    const weekly = makeResult(now - MS_WEEK, 'weekly');
+    const monthly = makeResult(now - MS_MONTH, 'monthly');
+    const total = makeResult(sorted[0].timestamp, 'total');
+    const avgDaily = makeAvgDaily();
+
+    function makeResult(minTimestamp: number, _label: string): { consumed: number; label: string } | null {
+        const consumed = calcConsumptionSince(minTimestamp);
+        if (consumed === null) return null;
+        const snapshots = sorted.filter(s => s.timestamp >= minTimestamp);
+        const firstTs = snapshots.length > 0 ? snapshots[0].timestamp : sorted[0].timestamp;
+        const daysDiff = Math.max(1, Math.round((now - firstTs) / MS_DAY));
+        return {
+            consumed,
+            label: `${consumed >= 0 ? '' : '+'}${Math.abs(consumed).toFixed(4)} (${daysDiff}d)`
         };
-        avgDaily = {
-            consumed: diff / totalDays,
-            days: totalDays
-        };
+    }
+
+    function dailyConsumption(): { consumed: number; label: string } | null {
+        const consumed = calcConsumptionSince(startOfTodayMs);
+        if (consumed === null) return null;
+        return { consumed, label: '' };
+    }
+
+    function makeAvgDaily(): { consumed: number; days: number } | null {
+        const totalConsumed = calcConsumptionSince(sorted[0].timestamp);
+        if (totalConsumed === null) return null;
+        const totalDays = Math.max(1, Math.round((now - sorted[0].timestamp) / MS_DAY));
+        return { consumed: totalConsumed / totalDays, days: totalDays };
     }
 
     return { daily, weekly, monthly, total, avgDaily, historyLength };
@@ -367,24 +373,19 @@ function buildTooltipMarkdown(): vscode.MarkdownString {
         } else {
             const lines: string[] = [];
             if (stats.daily) {
-                const emoji = stats.daily.consumed >= 0 ? '📉' : '📈';
-                lines.push(`${emoji} ${loc.strDaily()} ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)}`);
+                lines.push(`📉 ${loc.strDaily()} ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)}`);
             }
             if (stats.weekly) {
-                const emoji = stats.weekly.consumed >= 0 ? '📉' : '📈';
-                lines.push(`${emoji} ${loc.strWeekly()} ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)}`);
+                lines.push(`📉 ${loc.strWeekly()} ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)}`);
             }
             if (stats.monthly) {
-                const emoji = stats.monthly.consumed >= 0 ? '📉' : '📈';
-                lines.push(`${emoji} ${loc.strMonthly()} ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)}`);
+                lines.push(`📉 ${loc.strMonthly()} ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)}`);
             }
             if (stats.total) {
-                const emoji = stats.total.consumed >= 0 ? '📉' : '📈';
-                lines.push(`${emoji} ${loc.strTotal()} ${curSym}${Math.abs(stats.total.consumed).toFixed(4)}`);
+                lines.push(`📉 ${loc.strTotal()} ${curSym}${Math.abs(stats.total.consumed).toFixed(4)}`);
             }
             if (stats.avgDaily) {
-                const emoji = stats.avgDaily.consumed >= 0 ? '📊' : '📊';
-                lines.push(`${emoji} ${loc.strAvgDaily()} ${curSym}${Math.abs(stats.avgDaily.consumed).toFixed(4)} (${loc.strDays(stats.avgDaily.days)})`);
+                lines.push(`📊 ${loc.strAvgDaily()} ${curSym}${Math.abs(stats.avgDaily.consumed).toFixed(4)} (${loc.strDays(stats.avgDaily.days)})`);
             }
             tooltip.appendMarkdown(lines.join('\n\n') + '\n\n');
         }
@@ -506,20 +507,16 @@ function showDetails() {
             detailsMarkdown += `| ${loc.strReportPeriod()} | ${loc.strReportConsumed()} |\n`;
             detailsMarkdown += `| :--- | :--- |\n`;
             if (stats.daily) {
-                const direction = stats.daily.consumed >= 0 ? loc.strSpent() : loc.strDeposited();
-                detailsMarkdown += `| ${loc.strReportDaily()} | ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)} ${direction} |\n`;
+                detailsMarkdown += `| ${loc.strReportDaily()} | ${curSym}${Math.abs(stats.daily.consumed).toFixed(4)} ${loc.strSpent()} |\n`;
             }
             if (stats.weekly) {
-                const direction = stats.weekly.consumed >= 0 ? loc.strSpent() : loc.strDeposited();
-                detailsMarkdown += `| ${loc.strReportWeekly()} | ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)} ${direction} |\n`;
+                detailsMarkdown += `| ${loc.strReportWeekly()} | ${curSym}${Math.abs(stats.weekly.consumed).toFixed(4)} ${loc.strSpent()} |\n`;
             }
             if (stats.monthly) {
-                const direction = stats.monthly.consumed >= 0 ? loc.strSpent() : loc.strDeposited();
-                detailsMarkdown += `| ${loc.strReportMonthly()} | ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)} ${direction} |\n`;
+                detailsMarkdown += `| ${loc.strReportMonthly()} | ${curSym}${Math.abs(stats.monthly.consumed).toFixed(4)} ${loc.strSpent()} |\n`;
             }
             if (stats.total) {
-                const direction = stats.total.consumed >= 0 ? loc.strSpent() : loc.strDeposited();
-                detailsMarkdown += `| ${loc.strRowTotal()} | ${curSym}${Math.abs(stats.total.consumed).toFixed(4)} ${direction} |\n`;
+                detailsMarkdown += `| ${loc.strRowTotal()} | ${curSym}${Math.abs(stats.total.consumed).toFixed(4)} ${loc.strSpent()} |\n`;
             }
             if (stats.avgDaily) {
                 const direction = loc.strReportAvg();
